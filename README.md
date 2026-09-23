@@ -1,17 +1,46 @@
-# SPO
+<h1 align="center">SPO</h1>
 
-Speaker verification with WavLM and ECAPA-TDNN.
+<p align="center">
+  <strong>Speaker verification with WavLM + ECAPA-TDNN</strong><br/>
+  Separate extractor and speaker-center optimization.
+</p>
 
-> Initial release: only this README and the Docker environment are currently
-> published. Training code and pretrained weights will be added separately;
-> the training instructions below apply once the code is available.
+<p align="center">
+  <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/Framework-PyTorch-EE4C2C?logo=pytorch&amp;logoColor=white" alt="Framework: PyTorch"></a>
+  <a href="https://lightning.ai/docs/pytorch/stable/"><img src="https://img.shields.io/badge/Powered_by-PyTorch_Lightning-792EE5" alt="Powered by PyTorch Lightning"></a>
+  <a href="#environment-setting"><img src="https://img.shields.io/badge/Environment-Docker-2496ED?logo=docker&amp;logoColor=white" alt="Environment: Docker"></a>
+  <a href="#additional-logger-wb"><img src="https://img.shields.io/badge/Logging-W%26B_optional-FFBE00?logo=weightsandbiases&amp;logoColor=black" alt="Logging: W&amp;B optional"></a>
+</p>
 
-## Introduction
+<p align="center">
+  <a href="#overview">Overview</a> ·
+  <a href="#prerequisites">Setup</a> ·
+  <a href="#run-experiment">Training</a> ·
+  <a href="#additional-logger-wb">W&amp;B</a> ·
+  <a href="#pretrained-model">Models</a>
+</p>
 
-This repository contains the PyTorch implementation of SPO. The method separates
+Training code, the Docker recipe, and a weights-only
+[pretrained checkpoint](checkpoints/README.md) are included.
+
+## Overview
+
+SPO is implemented in PyTorch. The method separates
 extractor and speaker-center updates: the extractor uses the original sample
 contributions, while CDF-based weights reduce the influence of hard samples on
 speaker centers. Training uses a frozen WavLM frontend and an ECAPA-TDNN backend.
+
+```mermaid
+flowchart LR
+    A["16 kHz speech"] --> B["WavLM<br/>Frozen frontend"]
+    B --> C["ECAPA-TDNN<br/>Shared embedding"]
+    C --> D["SV path<br/>Full sample contribution<br/>Update extractor"]
+    C --> E["W path<br/>CDF-weighted contribution<br/>Update speaker centers"]
+```
+
+The two-path stage starts at step 10,000: SV uses detached centers, and W uses
+detached embeddings. Before that, training uses the joint AAM objective.
+WavLM remains frozen in both stages.
 
 Paper details and the citation will be added when available.
 
@@ -47,31 +76,59 @@ The Dockerfile is based on the supplied experiment environment:
 
 Use a Linux Docker host with NVIDIA GPU support. From the repository root:
 
-```bash
-# Build the local image: spo:latest
-bash docker/build.sh
+**1. Build the environment**
 
+```bash
+bash docker/build.sh
+```
+
+**2. Open a container shell**
+
+```bash
 # Open a shell using GPU 0; prepare both host directories first.
 GPU_DEVICES=device=0 bash docker/launch.sh "{YOUR_DATA_ROOT}" "{YOUR_OUTPUT_DIR}"
 ```
 
-The launcher mounts this code at `/workspace/research` and data at `/data`
-(read-only), and your output directory at `/output` (read/write). It does not
-start training. The output directory must be empty for a new run.
+The image is named `spo:latest`. Launching opens a shell, **not a training run**.
+
+| On your machine | Inside the container | Access |
+| --- | --- | --- |
+| This repository | `/workspace/research` | Read-only |
+| `{YOUR_DATA_ROOT}` | `/data` | Read-only |
+| `{YOUR_OUTPUT_DIR}` | `/output` | Read/write |
+
+Use an empty output directory for a new run. Results written under `/output`
+remain on your machine when the container exits.
+
+<details>
+<summary>GPU, shared-memory, and communication options</summary>
 
 Omitting `GPU_DEVICES` exposes all GPUs. Optional `SHM_SIZE` (default `80g`)
 and `IMAGE_NAME` override shared memory and the image tag. The supplied NCCL
-settings are retained; IPC is private to the container. No host credentials or
-home directory are mounted, and only the Docker directory is used for the build.
-The adapted image and training recipe still require end-to-end validation.
+settings are retained; they disable NCCL P2P and shared-memory transports and may
+affect multi-GPU performance. The shared-memory limit is not GPU VRAM.
+IPC is private to the container. No host credentials or home directory are
+mounted, and only the Docker directory is used for the build.
+
+</details>
+
+This is the single-GPU recipe; select one GPU as shown above. Multi-GPU/DDP
+training is not validated. The adapted image and full training recipe still
+require end-to-end validation.
 
 ## Run experiment
 
 ### System arguments
 
-Set training hyperparameters in `arguments.py`. Defaults include 18,000 steps,
-DA probability ramping to 0.6, and AAM margin increasing from 0.2 at step 10,000
-to 0.4 at step 18,000. There is no global loss multiplier.
+Set training hyperparameters in `arguments.py`.
+
+| Setting | Default |
+| --- | --- |
+| Training | Step 0 → 18,000 |
+| DA probability | Ramp to 0.6 |
+| AAM margin | 0.2 at step 10,000 → 0.4 at step 18,000 |
+| Global loss multiplier | None |
+| Model saving | Best validation EER only |
 
 Provide the five required paths at launch. From the source directory (or the
 container shell), run:
@@ -118,9 +175,26 @@ Leave `use_wandb=False` to train without W&B authentication or logging.
 
 ## Pretrained model
 
-Pretrained weights will be provided separately. The current entry point is for
-training from step zero, not checkpoint evaluation or resume. The modified
-recipe is not a claim to reproduce the original checkpoint's reported score.
+| Model | Step | Recorded VoxCeleb1-O EER (%) | Download / loading |
+| --- | ---: | ---: | --- |
+| WavLM + ECAPA-TDNN (SPO) | 18,000 | 0.7550 | [Checkpoint guide](checkpoints/README.md) |
+
+The checkpoint is stored with Git LFS. After cloning, run:
+
+```bash
+git lfs install
+git lfs pull --include="checkpoints/spo-best.ckpt"
+```
+
+The recorded EER comes from the supplied checkpoint's experiment record; it was
+not re-evaluated for this release. All model tensors are retained exactly, while
+optimizer state, callbacks, paths, and other training metadata are removed.
+The current `main.py` trains from step zero, not checkpoint evaluation or resume.
+This recipe removes the original global loss multiplier of 50 and is therefore
+not a claim to reproduce the original checkpoint's reported score by retraining.
+
+See [third-party notices](THIRD_PARTY_NOTICES.md) for the WavLM attribution and
+upstream license. Dataset audio and file lists are not distributed.
 
 ## Citation
 

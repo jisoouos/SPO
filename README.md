@@ -11,6 +11,10 @@
   <a href="#wb-optional"><img src="https://img.shields.io/badge/Logging-W%26B_optional-FFBE00?logo=weightsandbiases&amp;logoColor=black" alt="Logging: W&amp;B optional"></a>
 </p>
 
+## Abstract
+
+Selective Prototype Optimization (SPO) decouples embedding and prototype updates using complementary stop-gradient operations, preserving full supervision for embedding learning while selectively moderating hard-sample contributions to prototype updates based on class-relative difficulty. On VoxCeleb1-O, SPO reduces EER from 0.914% to 0.755% (17.4% relative reduction) and improves training stability under larger angular margins and stronger data augmentation.
+
 ## Setup
 
 Linux, Docker, and NVIDIA GPU support required. Run from the repository root:

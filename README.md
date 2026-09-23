@@ -16,27 +16,26 @@
 Linux, Docker, and NVIDIA GPU support required. Run from the repository root:
 
 ```bash
-bash docker/build.sh
-GPU_DEVICES=device=0 bash docker/launch.sh "{YOUR_DATA_ROOT}" "{YOUR_OUTPUT_DIR}"
+IMAGE_NAME="{YOUR_IMAGE_NAME}" bash docker/build.sh
+bash docker/launch.sh "{YOUR_IMAGE_NAME}"
 ```
 
-Replace all `{YOUR_...}` placeholders. Create both directories first; output must be empty.
-Inside Docker: data → `/data`, results → `/output`. Launch opens a shell, not training.
+Replace `{YOUR_...}` placeholders. Add your own code/data/output mounts to `docker/launch.sh`; no paths are preset. Unmounted files are deleted when the container exits.
 
 ## Train
 
-Set hyperparameters in `arguments.py`, then run inside the container:
+Set hyperparameters in `arguments.py`, then run from the repository root inside the container:
 
 ```bash
-python main.py \
+CUDA_VISIBLE_DEVICES="{YOUR_GPU_ID}" python main.py \
   --train-samples "{YOUR_TRAIN_LIST_PATH}" \
   --vox-trials "{YOUR_TRIAL_LIST_PATH}" \
   --noise-samples "{YOUR_NOISE_LIST_PATH}" \
   --reverb-samples "{YOUR_RIR_LIST_PATH}" \
-  --output-dir "/output"
+  --output-dir "{YOUR_OUTPUT_DIR}"
 ```
 
-Single-GPU recipe. Starts from step 0; saves only the best validation-EER model.
+Single-GPU recipe. Use an empty output directory. Starts from step 0; saves only the best validation-EER model.
 
 ## W&B (optional)
 

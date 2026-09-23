@@ -2,12 +2,7 @@
 
 ## Download
 
-Install [Git LFS](https://git-lfs.com/), then run in the cloned repository:
-
-```bash
-git lfs install
-git lfs pull --include="checkpoints/spo-best.ckpt"
-```
+Download [spo-best.ckpt](https://media.githubusercontent.com/media/jiuos/SPO/main/checkpoints/spo-best.ckpt) directly.
 
 ## Load for embedding extraction
 

@@ -1,5 +1,0 @@
-* text=auto
-*.py text eol=lf
-*.md text eol=lf
-*.sh text eol=lf
-checkpoints/spo-best.ckpt filter=lfs diff=lfs merge=lfs -text

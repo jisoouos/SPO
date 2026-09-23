@@ -76,11 +76,6 @@ Starts from step 0; saves only the best validation-EER model to the specified ou
 
 | Model | Step | Recorded VoxCeleb1-O EER (%) |
 | --- | ---: | ---: |
-| [spo-best.ckpt](checkpoints/spo-best.ckpt) | 18,000 | 0.7550 |
-
-```bash
-git lfs install
-git lfs pull --include="checkpoints/spo-best.ckpt"
-```
+| [spo-best.ckpt](https://media.githubusercontent.com/media/jiuos/SPO/main/checkpoints/spo-best.ckpt) | 18,000 | 0.7550 |
 
 Weights only; not for training resume. [Loading example](checkpoints/README.md).

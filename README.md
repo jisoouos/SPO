@@ -1,7 +1,7 @@
 <h1 align="center">SPO</h1>
 
 <p align="center">
-  <strong>Speaker verification with WavLM + ECAPA-TDNN</strong>
+  <strong>DECOUPLING HARD-SAMPLE GRADIENTS FOR SPEAKER EMBEDDING AND CLASS-CENTER LEARNING</strong>
 </p>
 
 <p align="center">
@@ -85,7 +85,7 @@ and `IMAGE_NAME` override shared memory and the image tag. The supplied NCCL
 settings are retained; they disable NCCL P2P and shared-memory transports and may
 affect multi-GPU performance. The shared-memory limit is not GPU VRAM.
 IPC is private to the container. No host credentials or home directory are
-mounted, and only the Docker directory is used for the build.
+mounted. Building sends only the Dockerfile, with no filesystem build context.
 
 </details>
 
@@ -169,6 +169,3 @@ optimizer state, callbacks, paths, and other training metadata are removed.
 The current `main.py` trains from step zero, not checkpoint evaluation or resume.
 This recipe removes the original global loss multiplier of 50 and is therefore
 not a claim to reproduce the original checkpoint's reported score by retraining.
-
-See [third-party notices](THIRD_PARTY_NOTICES.md) for the WavLM attribution and
-upstream license. Dataset audio and file lists are not distributed.

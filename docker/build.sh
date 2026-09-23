@@ -17,6 +17,6 @@ command -v docker >/dev/null 2>&1 || {
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 image_name="${IMAGE_NAME:-spo:latest}"
 
-# Send only this Docker directory as context, never the parent repository,
-# datasets, local credentials, or checkpoints.
-exec docker build --tag "$image_name" --file "$script_dir/Dockerfile" "$script_dir"
+# Send only the Dockerfile, with no filesystem build context.
+# Local credentials, datasets, code, and checkpoints are never sent.
+exec docker build --tag "$image_name" - < "$script_dir/Dockerfile"

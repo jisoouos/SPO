@@ -32,19 +32,7 @@ cd SPO
 IMAGE_NAME="{YOUR_IMAGE_NAME}" bash docker/build.sh
 ```
 
-### 3. Set your directory mounts
-
-In `docker/launch.sh`, add these options before `"$image_name" /bin/bash`:
-
-```bash
-    --mount "type=bind,source={YOUR_HOST_CODE_DIR},target={YOUR_CONTAINER_CODE_DIR}" \
-    --mount "type=bind,source={YOUR_HOST_DATA_DIR},target={YOUR_CONTAINER_DATA_DIR},readonly" \
-    --mount "type=bind,source={YOUR_HOST_OUTPUT_DIR},target={YOUR_CONTAINER_OUTPUT_DIR}" \
-```
-
-Use absolute paths to existing host directories: the cloned repository, your data, and an empty output directory. File lists and their audio paths must be accessible inside the container.
-
-### 4. Start the container
+### 3. Start the container
 
 ```bash
 bash docker/launch.sh "{YOUR_IMAGE_NAME}"
@@ -52,13 +40,7 @@ bash docker/launch.sh "{YOUR_IMAGE_NAME}"
 
 ## Train
 
-### 5. Configure training
-
-Inside the container, enter the mounted repository:
-
-```bash
-cd "{YOUR_CONTAINER_CODE_DIR}"
-```
+### 4. Configure training
 
 Set hyperparameters in `arguments.py`.
 
@@ -75,9 +57,9 @@ Disabled by default. To enable, set these values in `arguments.py`:
 
 Keep real API keys local; never commit them.
 
-### 6. Run training
+### 5. Run training
 
-Use container-side paths and select one GPU:
+Run from the repository root in your configured environment, using your own data and output paths:
 
 ```bash
 CUDA_VISIBLE_DEVICES="{YOUR_GPU_ID}" python main.py \
@@ -85,10 +67,10 @@ CUDA_VISIBLE_DEVICES="{YOUR_GPU_ID}" python main.py \
   --vox-trials "{YOUR_TRIAL_LIST_PATH}" \
   --noise-samples "{YOUR_NOISE_LIST_PATH}" \
   --reverb-samples "{YOUR_RIR_LIST_PATH}" \
-  --output-dir "{YOUR_CONTAINER_OUTPUT_DIR}"
+  --output-dir "{YOUR_OUTPUT_DIR}"
 ```
 
-Starts from step 0; saves only the best validation-EER model to your mounted output directory.
+Starts from step 0; saves only the best validation-EER model to the specified output directory.
 
 ## Checkpoint
 

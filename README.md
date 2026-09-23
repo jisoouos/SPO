@@ -13,35 +13,56 @@
 
 ## Abstract
 
-Selective Prototype Optimization (SPO) decouples embedding and prototype updates using complementary stop-gradient operations, preserving full supervision for embedding learning while selectively moderating hard-sample contributions to prototype updates based on class-relative difficulty. On VoxCeleb1-O, SPO reduces EER from 0.914% to 0.755% (17.4% relative reduction) and improves training stability under larger angular margins and stronger data augmentation.
+Speaker embedding extractors are typically trained using classification objectives where each speaker is represented by a learnable class prototype. Speech signals suffer from severe acoustic variability, producing hard samples that destabilize class prototypes despite offering valuable supervision for feature learning. This fundamental tension explains why existing approaches have diverged into two opposing directions: either suppressing or amplifying hard-sample signals. To address this issue, we propose Selective Prototype Optimization (SPO), which decouples the two gradient paths using complementary stop-gradient operations. SPO maintains full supervision for embedding learning while selectively moderating hard-sample contributions to prototype updates based on their class-relative difficulty, introducing no additional parameters or computational overhead. On VoxCeleb1-O, SPO lowers the equal error rate from 0.914% to 0.755% (a 17.4% relative reduction), outperforming existing hard-sample and center-based approaches. Furthermore, by stabilizing the optimization process, SPO prevents performance collapse under aggressive training regimes, enabling larger angular margins and stronger data augmentation to yield continued gains where baselines degrade.
 
 ## Setup
 
-Linux, Docker, and NVIDIA GPU support required. Run from the repository root:
+Linux, Docker, and NVIDIA GPU support required. Replace all `{YOUR_...}` placeholders.
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/jiuos/SPO.git
+cd SPO
+```
+
+### 2. Build the Docker image
 
 ```bash
 IMAGE_NAME="{YOUR_IMAGE_NAME}" bash docker/build.sh
+```
+
+### 3. Set your directory mounts
+
+In `docker/launch.sh`, add these options before `"$image_name" /bin/bash`:
+
+```bash
+    --mount "type=bind,source={YOUR_HOST_CODE_DIR},target={YOUR_CONTAINER_CODE_DIR}" \
+    --mount "type=bind,source={YOUR_HOST_DATA_DIR},target={YOUR_CONTAINER_DATA_DIR},readonly" \
+    --mount "type=bind,source={YOUR_HOST_OUTPUT_DIR},target={YOUR_CONTAINER_OUTPUT_DIR}" \
+```
+
+Use absolute paths to existing host directories: the cloned repository, your data, and an empty output directory. File lists and their audio paths must be accessible inside the container.
+
+### 4. Start the container
+
+```bash
 bash docker/launch.sh "{YOUR_IMAGE_NAME}"
 ```
 
-Replace `{YOUR_...}` placeholders. Add your own code/data/output mounts to `docker/launch.sh`; no paths are preset. Unmounted files are deleted when the container exits.
-
 ## Train
 
-Set hyperparameters in `arguments.py`, then run from the repository root inside the container:
+### 5. Configure training
+
+Inside the container, enter the mounted repository:
 
 ```bash
-CUDA_VISIBLE_DEVICES="{YOUR_GPU_ID}" python main.py \
-  --train-samples "{YOUR_TRAIN_LIST_PATH}" \
-  --vox-trials "{YOUR_TRIAL_LIST_PATH}" \
-  --noise-samples "{YOUR_NOISE_LIST_PATH}" \
-  --reverb-samples "{YOUR_RIR_LIST_PATH}" \
-  --output-dir "{YOUR_OUTPUT_DIR}"
+cd "{YOUR_CONTAINER_CODE_DIR}"
 ```
 
-Single-GPU recipe. Use an empty output directory. Starts from step 0; saves only the best validation-EER model.
+Set hyperparameters in `arguments.py`.
 
-## W&B (optional)
+#### W&B (optional)
 
 Disabled by default. To enable, set these values in `arguments.py`:
 
@@ -53,6 +74,21 @@ Disabled by default. To enable, set these values in `arguments.py`:
 ```
 
 Keep real API keys local; never commit them.
+
+### 6. Run training
+
+Use container-side paths and select one GPU:
+
+```bash
+CUDA_VISIBLE_DEVICES="{YOUR_GPU_ID}" python main.py \
+  --train-samples "{YOUR_TRAIN_LIST_PATH}" \
+  --vox-trials "{YOUR_TRIAL_LIST_PATH}" \
+  --noise-samples "{YOUR_NOISE_LIST_PATH}" \
+  --reverb-samples "{YOUR_RIR_LIST_PATH}" \
+  --output-dir "{YOUR_CONTAINER_OUTPUT_DIR}"
+```
+
+Starts from step 0; saves only the best validation-EER model to your mounted output directory.
 
 ## Checkpoint
 

@@ -30,5 +30,4 @@ RUN pip install --no-cache-dir \
     soundfile \
     librosa
 
-WORKDIR /workspace/research
 CMD ["/bin/bash"]

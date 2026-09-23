@@ -1,8 +1,7 @@
 <h1 align="center">SPO</h1>
 
 <p align="center">
-  <strong>Speaker verification with WavLM + ECAPA-TDNN</strong><br/>
-  Separate extractor and speaker-center optimization.
+  <strong>Speaker verification with WavLM + ECAPA-TDNN</strong>
 </p>
 
 <p align="center">
@@ -13,7 +12,6 @@
 </p>
 
 <p align="center">
-  <a href="#overview">Overview</a> ·
   <a href="#prerequisites">Setup</a> ·
   <a href="#run-experiment">Training</a> ·
   <a href="#additional-logger-wb">W&amp;B</a> ·
@@ -22,27 +20,6 @@
 
 Training code, the Docker recipe, and a weights-only
 [pretrained checkpoint](checkpoints/README.md) are included.
-
-## Overview
-
-SPO is implemented in PyTorch. The method separates
-extractor and speaker-center updates: the extractor uses the original sample
-contributions, while CDF-based weights reduce the influence of hard samples on
-speaker centers. Training uses a frozen WavLM frontend and an ECAPA-TDNN backend.
-
-```mermaid
-flowchart LR
-    A["16 kHz speech"] --> B["WavLM<br/>Frozen frontend"]
-    B --> C["ECAPA-TDNN<br/>Shared embedding"]
-    C --> D["SV path<br/>Full sample contribution<br/>Update extractor"]
-    C --> E["W path<br/>CDF-weighted contribution<br/>Update speaker centers"]
-```
-
-The two-path stage starts at step 10,000: SV uses detached centers, and W uses
-detached embeddings. Before that, training uses the joint AAM objective.
-WavLM remains frozen in both stages.
-
-Paper details and the citation will be added when available.
 
 ## Prerequisites
 
@@ -195,7 +172,3 @@ not a claim to reproduce the original checkpoint's reported score by retraining.
 
 See [third-party notices](THIRD_PARTY_NOTICES.md) for the WavLM attribution and
 upstream license. Dataset audio and file lists are not distributed.
-
-## Citation
-
-Citation details will be added with the paper.

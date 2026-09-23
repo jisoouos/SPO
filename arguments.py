@@ -34,7 +34,7 @@ def get_args(argv=None):
         'use_wandb'             : False,
         'wandb_entity'          : '{YOUR_WANDB_USER_NAME}',
         'wandb_api_key'         : '{YOUR_WANDB_API_KEY}',
-        'wandb_project'         : 'SPO',
+        'wandb_project'         : '{YOUR_WANDB_PROJECT}',
         'wandb_name'            : None,
 
         # data

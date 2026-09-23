@@ -16,8 +16,14 @@ RUN (pip uninstall -y torchaudio || true) && \
     pip install . --no-build-isolation --no-deps && \
     rm -rf /tmp/audio
 
-RUN pip install --no-cache-dir \
-    huggingface_hub wandb transformers "lightning>=2.2,<3" \
-    numpy scipy scikit-learn soundfile librosa
+RUN pip install --no-cache-dir huggingface_hub
+RUN pip install --no-cache-dir wandb
+RUN pip install --no-cache-dir transformers
+RUN pip install --no-cache-dir "lightning>=2.2,<3"
+RUN pip install --no-cache-dir numpy
+RUN pip install --no-cache-dir scipy
+RUN pip install --no-cache-dir scikit-learn
+RUN pip install --no-cache-dir soundfile
+RUN pip install --no-cache-dir librosa
 
 CMD ["/bin/bash"]
